@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Screening System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a1a1a 0%, #2d1b2e 50%, #1f1f1f 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: #1e1e1e; border-radius: 20px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid #3a3a3a; }
+        h1 { color: #e91e63; text-align: center; margin-bottom: 10px; font-size: 2.5em; text-shadow: 0 0 20px rgba(233,30,99,0.5); }
+        .subtitle { text-align: center; color: #b0b0b0; margin-bottom: 30px; }
+        .upload-area { border: 3px dashed #e91e63; border-radius: 15px; padding: 40px; text-align: center; background: #252525; cursor: pointer; transition: all 0.3s; margin-bottom: 20px; }
+        .upload-area:hover { background: #2d2d2d; border-color: #ff4081; box-shadow: 0 0 20px rgba(233,30,99,0.3); }
+        .upload-area.dragover { background: #333333; border-color: #ff4081; box-shadow: 0 0 30px rgba(255,64,129,0.5); }
+        .upload-icon { font-size: 50px; color: #e91e63; margin-bottom: 15px; }
+        input[type="file"] { display: none; }
+        .file-list { margin: 20px 0; }
+        .file-item { background: #252525; padding: 10px 15px; margin: 5px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #3a3a3a; color: #e0e0e0; }
+        .remove-btn { background: #ff4757; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; transition: all 0.2s; }
+        .remove-btn:hover { background: #ff3838; box-shadow: 0 0 10px rgba(255,71,87,0.5); }
+        .btn { background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%); color: white; border: none; padding: 15px 40px; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 20px; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(233,30,99,0.4); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .results { margin-top: 30px; }
+        .result-card { background: #252525; border-left: 4px solid #e91e63; padding: 20px; margin: 15px 0; border-radius: 8px; border: 1px solid #3a3a3a; display: flex; justify-content: space-between; align-items: center; }
+        .result-card h3 { color: #ffffff; margin: 0; font-size: 16px; }
+        .result-info { display: flex; gap: 15px; align-items: center; }
+        .category { background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%); color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; font-size: 14px; }
+        .confidence { color: #4caf50; font-size: 13px; font-weight: bold; }
+        .score { background: #ff9800; color: white; padding: 5px 12px; border-radius: 15px; font-size: 13px; font-weight: bold; }
+        .stats-card { background: #252525; border: 1px solid #3a3a3a; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px; }
+        .stat-item { background: #1e1e1e; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #3a3a3a; }
+        .stat-value { color: #e91e63; font-size: 24px; font-weight: bold; }
+        .stat-label { color: #b0b0b0; font-size: 12px; margin-top: 5px; }
+        .export-btn { background: #4caf50; color: white; border: none; padding: 12px 30px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 15px; transition: all 0.3s; }
+        .export-btn:hover { background: #45a049; box-shadow: 0 5px 15px rgba(76,175,80,0.4); }
+        .clear-btn { background: #ff4757; color: white; border: none; padding: 12px 30px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 15px; width: 100%; transition: all 0.3s; }
+        .clear-btn:hover { background: #ff3838; box-shadow: 0 5px 15px rgba(255,71,87,0.4); }
+        .preview { color: #b0b0b0; font-size: 14px; margin-top: 10px; line-height: 1.6; }
+        .loading { text-align: center; color: #e91e63; font-size: 18px; margin: 20px 0; }
+        .error { background: #2d1b1b; border-left: 4px solid #ff4757; padding: 15px; border-radius: 8px; color: #ff6b7a; margin: 15px 0; border: 1px solid #4d2d2d; }
+        .category-chart { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .category-item { background: #1e1e1e; padding: 10px 15px; border-radius: 8px; border: 1px solid #3a3a3a; color: #e0e0e0; font-size: 13px; }
+        .train-section { margin-top: 40px; padding-top: 40px; border-top: 2px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 Resume Screening System</h1>
+        <p class="subtitle">Upload single or multiple resume PDFs for automatic categorization</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <h3>Click or Drag & Drop PDF Files Here</h3>
+            <p>Support for multiple file uploads</p>
+            <input type="file" id="fileInput" accept=".pdf" multiple>
+        </div>
+        
+        <div class="file-list" id="fileList"></div>
+        
+        <button class="btn" id="predictBtn" disabled>Analyze Resumes</button>
+        
+        <div id="loading" class="loading" style="display:none;">
+            <p>🔄 Processing resumes...</p>
+        </div>
+        
+        <div class="results" id="results"></div>
+        <button class="clear-btn" id="clearBtn" style="display:none;" onclick="clearResults()">🗑️ Clear Results</button>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const predictBtn = document.getElementById('predictBtn');
+        const results = document.getElementById('results');
+        const loading = document.getElementById('loading');
+        
+        let currentResults = [];
+        
+        let selectedFiles = [];
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        function handleFiles(files) {
+            for (let file of files) {
+                if (file.type === 'application/pdf') {
+                    selectedFiles.push(file);
+                }
+            }
+            updateFileList();
+        }
+        
+        function updateFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = 'file-item';
+                div.innerHTML = `
+                    <span>📄 ${file.name}</span>
+                    <button class="remove-btn" onclick="removeFile(${index})">Remove</button>
+                `;
+                fileList.appendChild(div);
+            });
+            predictBtn.disabled = selectedFiles.length === 0;
+        }
+        
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+        }
+        
+        predictBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) return;
+            
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('resumes', file);
+            });
+            
+            loading.style.display = 'block';
+            results.innerHTML = '';
+            predictBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    results.innerHTML = `<div class="error">❌ Error: ${data.error}</div>`;
+                } else {
+                    currentResults = data.results;
+                    
+                    // Statistics
+                    let statsHTML = `
+                        <div class="stats-card">
+                            <h2 style="color: #ffffff; margin-bottom: 10px;">📊 Statistics</h2>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-value">${data.stats.total}</div>
+                                    <div class="stat-label">Total Resumes</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">${data.stats.avg_confidence}%</div>
+                                    <div class="stat-label">Avg Confidence</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">${data.stats.avg_score}/10</div>
+                                    <div class="stat-label">Avg Score</div>
+                                </div>
+                            </div>
+                            <button class="export-btn" onclick="exportResults()">📥 Export to CSV</button>
+                        </div>
+                    `;
+                    
+                    // Results
+                    results.innerHTML = '<h2 style="margin-bottom: 20px; color: #ffffff;">📊 Results</h2>' + statsHTML;
+                    data.results.forEach(result => {
+                        results.innerHTML += `
+                            <div class="result-card">
+                                <h3>📄 ${result.filename}</h3>
+                                <div class="result-info">
+                                    <div class="confidence">✓ ${result.confidence}%</div>
+                                    <div class="score">⭐ ${result.score}/10</div>
+                                    <div class="category">${result.category}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                results.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            } finally {
+                loading.style.display = 'none';
+                predictBtn.disabled = false;
+            }
+        });
+        
+        async function exportResults() {
+            try {
+                const response = await fetch('/export', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({results: currentResults})
+                });
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'resume_results.csv';
+                a.click();
+            } catch (error) {
+                alert('Export failed: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
